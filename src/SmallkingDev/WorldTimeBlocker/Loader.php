@@ -20,6 +20,8 @@ use SmallkingDev\WorldTimeBlocker\world\WorldManager;
 
 final class Loader extends PluginBase {
 
+    private const COMMAND_FALLBACK_PREFIX = "WorldTimeBlocker";
+
     private Config $config;
     private WorldManager $worldManager;
 
@@ -66,7 +68,7 @@ final class Loader extends PluginBase {
 
             $root->addChild($permission, true);
         }
-        $this->getServer()->getCommandMap()->register("blockTime", new BlockWorldTimeCommand($this, $this->config));
+        $this->getServer()->getCommandMap()->register(self::COMMAND_FALLBACK_PREFIX, new BlockWorldTimeCommand($this, $this->config));
     }
 
     private function registerInterceptor(): void {
