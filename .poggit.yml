@@ -9,6 +9,7 @@ projects:
     libs:
       - src: sylvrs/libMarshal/libMarshal
         version: ^1.4.3
+        branch: feature/virion
       - src: Muqsit/SimplePacketHandler/SimplePacketHandler
         version: ^0.1.0
 ...
