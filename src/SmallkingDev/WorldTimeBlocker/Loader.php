@@ -4,36 +4,60 @@ declare(strict_types=1);
 
 namespace SmallkingDev\WorldTimeBlocker;
 
+use libMarshal\exception\GeneralMarshalException;
+use libMarshal\exception\UnmarshalException;
 use muqsit\simplepackethandler\SimplePacketHandler;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\SetTimePacket;
 use pocketmine\permission\DefaultPermissions;
 use pocketmine\permission\Permission;
 use pocketmine\permission\PermissionManager;
+use pocketmine\plugin\DisablePluginException;
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\ConfigLoadException;
 use SmallkingDev\WorldTimeBlocker\command\BlockWorldTimeCommand;
-use SmallkingDev\WorldTimeBlocker\config\CommandConfig;
-use SmallkingDev\WorldTimeBlocker\config\MessageConfig;
 use SmallkingDev\WorldTimeBlocker\world\WorldManager;
 
 final class Loader extends PluginBase {
 
+    private Config $config;
     private WorldManager $worldManager;
 
     protected function onLoad(): void {
+        $this->checkVirions();
+        $this->prepareConfiguration();
         $this->worldManager = new WorldManager($this->getDataFolder());
     }
 
     protected function onEnable(): void {
         $this->registerDefaultCommand();
-        $this->registerSimpleInterceptor();
+        $this->registerInterceptor();
+    }
+
+    private function checkVirions(): void {
+        $virionNameNotFound = match (true) {
+            !trait_exists(MarshalTrait::class) => "libMarshal",
+            !class_exists(SimplePacketHandler::class) => "SimplePacketHandler",
+            default => null
+        };
+
+        if (is_string($virionNameNotFound)) {
+            $this->getLogger()->error("Virion \'$virionNameNotFound' not found. Please download WorldTimeBlocker from Poggit-CI.");
+            throw new DisablePluginException();
+        }
+    }
+
+    private function prepareConfiguration(): void {
+        try {
+            $this->config = Config::unmarshal($this->getConfig()->getAll());
+        } catch (GeneralMarshalException | UnmarshalException | ConfigLoadException $exception) {
+            $this->getLogger()->error($exception->getMessage());
+            throw new DisablePluginException();
+        }
     }
 
     private function registerDefaultCommand(): void {
-        $commandConfig = CommandConfig::unmarshal($this->getConfig()->get("command", [])); // @phpstan-ignore-line
-        $messageConfig = MessageConfig::unmarshal($this->getConfig()->get("messages", [])); // @phpstan-ignore-line
-
-        if (($permission = $commandConfig->permission) !== null) {
+        if (($permission = $this->config->command->permission) !== null) {
             $permissionManager = PermissionManager::getInstance();
             $permissionManager->addPermission(new Permission($permission));
 
@@ -42,10 +66,10 @@ final class Loader extends PluginBase {
 
             $root->addChild($permission, true);
         }
-        $this->getServer()->getCommandMap()->register("blockTime", new BlockWorldTimeCommand($this, $commandConfig, $messageConfig));
+        $this->getServer()->getCommandMap()->register("blockTime", new BlockWorldTimeCommand($this, $this->config));
     }
 
-    private function registerSimpleInterceptor(): void {
+    private function registerInterceptor(): void {
         SimplePacketHandler::createInterceptor($this)
             ->interceptOutgoing(function (SetTimePacket $packet, NetworkSession $target): bool {
                 $player = $target->getPlayer();

@@ -18,4 +18,7 @@ final class MessageConfig {
 
     #[Field("time-set")]
     public string $timeSet = "Successfully set world time to %s";
+
+    #[Field("time-already-set")]
+    public string $timeAlreadySet = "World time is already set to %s";
 }

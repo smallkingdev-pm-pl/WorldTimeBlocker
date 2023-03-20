@@ -19,5 +19,7 @@ messages:
   no-permission: "§cYou do not have permission to execute this command."
   # Message when the invalid time is entered
   invalid-time: "§cInvalid time."
+  # Message when the time is already set
+  time-already-set: "§cTime is already set to §f%s§c."
   # Message when the time is set
   time-set: "§aTime set to §f%s§a."
