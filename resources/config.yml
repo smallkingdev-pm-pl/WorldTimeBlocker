@@ -1,0 +1,25 @@
+# Command settings
+# %s - command name
+command:
+  # Command name
+  name: "blocktime"
+  # Command description
+  description: "Block time in world"
+  # Command usage message
+  usage: "/%s <time>"
+  # Command permission
+  permission: "blocktime.command"
+  # Command aliases
+  aliases: ["bt"]
+
+# Message settings
+# %s% - time
+messages:
+  # Message when the player does not have permission
+  no-permission: "§cYou do not have permission to execute this command."
+  # Message when the invalid time is entered
+  invalid-time: "§cInvalid time."
+  # Message when the time is already set
+  time-already-set: "§cTime is already set to §f%s§c."
+  # Message when the time is set
+  time-set: "§aTime set to §f%s§a."

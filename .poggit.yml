@@ -1,0 +1,14 @@
+--- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/smallkingdev-pm-pl/WorldTimeBlocker
+build-by-default: true
+branches:
+- main
+projects:
+  WorldTimeBlocker:
+    path: ""
+    icon: icon.png
+    libs:
+      - src: sylvrs/libMarshal/libMarshal
+        version: ^1.4.3
+      - src: Muqsit/SimplePacketHandler/SimplePacketHandler
+        version: ^0.1.0
+...
