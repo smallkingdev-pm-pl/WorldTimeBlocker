@@ -1,5 +1,5 @@
 # WorldTimeBlocker
-a simple plugin for PocketMine-MP, which allows you to freeze world time for the game client.
+a simple plugin for PocketMine-MP, which allows you to freeze world time for the player.
 
 # Command
-the system command would be /blocktime, but you could change it in the plugin configuration.
+Use the `/time stop` command to freeze the world time.

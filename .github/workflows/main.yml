@@ -6,58 +6,34 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-php:
-    name: Prepare PHP
-    runs-on: ${{ matrix.image }}
-
-    strategy:
-      matrix:
-        image: [ubuntu-20.04]
-        php: [8.0.28]
-
-    steps:
-      - name: Build and prepare PHP cache
-        uses: pmmp/setup-php-action@6dd74c145250109942b08fc63cd5118edd2fd256
-        with:
-          php-version: ${{ matrix.php }}
-          install-path: "./bin"
-          pm-version-major: "4"
-
-  phpstan:
+  build:
     name: PHPStan analysis
-    needs: build-php
-    runs-on: ${{ matrix.image }}
-
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        image: [ubuntu-20.04]
-        php: [8.0.28]
+        php: ["8.1"]
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Setup PHP
-        uses: pmmp/setup-php-action@6dd74c145250109942b08fc63cd5118edd2fd256
+        uses: pmmp/setup-php-action@2.0.0
         with:
           php-version: ${{ matrix.php }}
           install-path: "./bin"
-          pm-version-major: "4"
-
-      - name: Install Composer
-        run: curl -sS https://getcomposer.org/installer | php
+          pm-version-major: 5
 
       - name: Restore Composer package cache
+        id: composer-cache
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.cache/composer/files
-            ~/.cache/composer/vcs
-          key: "composer-v2-cache-${{ matrix.php }}-${{ hashFiles('./composer.lock') }}"
-          restore-keys: |
-            composer-v2-cache-
-      - name: Install Composer dependencies
-        run: php composer.phar install --prefer-dist --no-interaction
+          path: "~/.cache/composer"
+          key: "php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}"
+          restore-keys: "php-${{ matrix.php }}-composer-"
+
+      - name: Install PHPStan Composer dependencies
+        run: composer install --prefer-dist --no-interaction --ignore-platform-reqs
 
       - name: Run PHPStan
-        run: ./vendor/bin/phpstan analyze --no-progress --memory-limit=2G
+        run: vendor/bin/phpstan analyze

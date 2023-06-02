@@ -1,6 +1,8 @@
 name: WorldTimeBlocker
-main: SmallkingDev\WorldTimeBlocker\Loader
+main: SmallkingDev\WorldTimeBlocker\Main
+src-namespace-prefix: SmallkingDev\WorldTimeBlocker
+version: 1.1.0
+api: [4.0.0, 5.0.0]
 author: SmallkingDev
-api: [4.0.0]
-version: 1.0.0
 description: Block world time
+website: https://github.com/smallkingdev-pm-pl/WorldTimeBlocker
