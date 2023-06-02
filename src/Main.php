@@ -42,15 +42,10 @@ final class Main extends PluginBase {
 
 							if (!$world->stopTime) {
 								 $this->removeWorldTimeBlock($world);
-								 continue;
+						   } else {
+								 $this->setWorldTimeBlock($world);
 						   }
-						   $session = Session::get($player);
-
-						   if (!$session->setReceivedTime($packet->time)) {
-								$event->cancel();
-								continue;
-						   }
-						   $this->setWorldTimeBlock($world);
+						   $packet->time = $this->getWorldTimeBlock($world);
 						}
 					}
 				}
