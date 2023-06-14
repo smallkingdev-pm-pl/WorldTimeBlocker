@@ -1,10 +1,10 @@
 {
     "name": "smallkingdev/worldtimeblocker",
-    "description": "a simple plugin that blocks world time.",
+    "description": "A simple plugin for PocketMine-MP that freezes world time.",
     "type": "project",
-    "license": "MIT",
+    "license": "LGPL-3.0",
     "require": {
-        "pocketmine/pocketmine-mp": "^5.0|^4.0"
+        "pocketmine/pocketmine-mp": "^4.0.0 || ^5.0.0"
     },
     "require-dev": {
         "phpstan/phpstan": "^1.10",
