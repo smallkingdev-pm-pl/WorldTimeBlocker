@@ -13,75 +13,79 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use pocketmine\world\World;
 
+use function get_debug_type;
 use function is_int;
 
 final class Main extends PluginBase {
+  
+  private Config $storage;
 
-	private Config $worldTimeBlockStorage;
+	protected function onLoad(): void {
+		$this->storage = new Config($this->getDataFolder() . "worlds.yml");
 
-	protected function onLoad() : void {
-		$this->worldTimeBlockStorage = new Config($this->getDataFolder() . "worlds.yml");
-
-		foreach ($this->worldTimeBlockStorage->getAll() as $worldTime) {
+		foreach ($this->storage->getAll() as $worldTime) {
 			if (!is_int($worldTime)) {
-				 $this->getLogger()->warning("Invalid world time value: " . $worldTime);
-				 throw new DisablePluginException();
+				 $this->getLogger()->warning("Invalid world time value $worldTime, expected int, got " . get_debug_type($worldTime));
+				 $this->getServer()->getPluginManager()->disablePlugin($this);
 			}
 		}
 	}
 
-	protected function onEnable() : void {
-		$this->getServer()->getPluginManager()->registerEvent(DataPacketSendEvent::class, function(DataPacketSendEvent $event) : void {
+	protected function onEnable(): void {
+		$this->getServer()->getPluginManager()->registerEvent(DataPacketSendEvent::class, function(DataPacketSendEvent $event): void {
 			foreach ($event->getPackets() as $packet) {
-				if ($packet instanceof SetTimePacket) {
-					foreach ($event->getTargets() as $target) {
-						$player = $target->getPlayer();
-
-						if ($player !== null) {
-							$world = $player->getWorld();
-
-							if (!$world->stopTime) {
-								 $this->removeWorldTimeBlock($world);
-						   } else {
-								 $this->setWorldTimeBlock($world);
-						   }
-						   $packet->time = $this->getWorldTimeBlock($world);
-						}
-					}
-				}
+			    if (!($packet instanceof SetTimePacket)) {
+			        continue;
+			    }
+			    foreach ($event->getTargets() as $target) {
+			        $player = $target->getPlayer();
+			        
+			        if ($player === null) {
+			            continue;
+			        }
+			        $world = $player->getWorld();
+			        
+			        if (!$world->stopTime) {
+			             $this->removeBlockedWorldTime($world);
+			             continue;
+			        }
+			        $packet->time = $this->newBlockedWorldTime($world);
+			    }
 			}
 		}, EventPriority::HIGHEST, $this);
-		$this->getServer()->getPluginManager()->registerEvent(WorldLoadEvent::class, function(WorldLoadEvent $event) : void {
+		
+		$this->getServer()->getPluginManager()->registerEvent(WorldLoadEvent::class, function(WorldLoadEvent $event): void {
 			$world = $event->getWorld();
 
-			if (!$world->stopTime && $this->hasWorldTimeBlock($world)) {
-				 $world->setTime($this->getWorldTimeBlock($world));
+			if (!$world->stopTime && $this->hasBlockedWorldTime($world)) {
+				 $world->setTime($this->getBlockedWorldTime($world));
 				 $world->stopTime();
 			}
 		}, EventPriority::NORMAL, $this);
 	}
 
-	private function getWorldTimeBlock(World $world) : int {
+	private function getBlockedWorldTime(World $world): int {
 		/** @var int $worldTime */
-		$worldTime = $this->worldTimeBlockStorage->get($world->getFolderName(), $world->getTime());
+		$worldTime = $this->storage->get($world->getFolderName(), $world->getTime());
 		return $worldTime;
 	}
-
-	private function hasWorldTimeBlock(World $world) : bool {
-		return $this->worldTimeBlockStorage->exists($world->getFolderName());
+	
+	private function hasBlockedWorldTime(World $world): bool {
+	    return $this->storage->exists($world->getFolderName());
 	}
-
-	private function setWorldTimeBlock(World $world) : void {
-		if (!$this->hasWorldTimeBlock($world)) {
-			 $this->worldTimeBlockStorage->set($world->getFolderName(), $world->getTime());
-			 $this->worldTimeBlockStorage->save();
+	
+	private function newBlockedWorldTime(World $world): int {
+	    if (!$this->hasBlockedWorldTime($world)) {
+			 $this->storage->set($world->getFolderName(), $world->getTime());
+			 $this->storage->save();
 		}
+		return $this->getBlockedWorldTime($world);
 	}
 
-	private function removeWorldTimeBlock(World $world) : void {
-		if ($this->hasWorldTimeBlock($world)) {
-			$this->worldTimeBlockStorage->remove($world->getFolderName());
-			$this->worldTimeBlockStorage->save();
+	private function removeBlockedWorldTime(World $world): void {
+		if ($this->hasBlockedWorldTime($world)) {
+			$this->storage->remove($world->getFolderName());
+			$this->storage->save();
 		}
 	}
 }
