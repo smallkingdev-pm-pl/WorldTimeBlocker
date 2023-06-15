@@ -25,7 +25,7 @@ final class Main extends PluginBase {
 
 		foreach ($this->storage->getAll() as $worldTime) {
 			if (!is_int($worldTime)) {
-				 $this->getLogger()->warning("Invalid world time value $worldTime, expected int, got " . get_debug_type($worldTime));
+				 $this->getLogger()->warning("Invalid world time value, expected int, got " . get_debug_type($worldTime));
 				 $this->getServer()->getPluginManager()->disablePlugin($this);
 			}
 		}
